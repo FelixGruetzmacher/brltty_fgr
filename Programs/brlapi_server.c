@@ -1108,6 +1108,7 @@ static int handleWrite(Connection *c, brlapi_packetType_t type, brlapi_packet_t 
     regionSize = (int32_t) ntohl( *((uint32_t *) p) );
     p += sizeof(uint32_t); remaining -= sizeof(uint32_t); /* region size */
     if (regionSize < 0) {
+      CHECKEXC(regionSize != INT32_MIN, BRLAPI_ERROR_INVALID_PARAMETER, "invalid region size");
       rsiz = -regionSize;
       fill = true;
     } else {
@@ -1121,12 +1122,12 @@ static int handleWrite(Connection *c, brlapi_packetType_t type, brlapi_packet_t 
     );
 
     CHECKEXC(
-      (rsiz > 0) && (fill || rsiz <= displaySize),
+      (rsiz >= 1) && (rsiz <= displaySize),
       BRLAPI_ERROR_INVALID_PARAMETER, "invalid region size"
     );
 
     CHECKEXC(
-      (fill || (rbeg + rsiz - 1) <= displaySize),
+      (rbeg + rsiz - 1 <= displaySize),
       BRLAPI_ERROR_INVALID_PARAMETER, "invalid region"
     );
   } else {

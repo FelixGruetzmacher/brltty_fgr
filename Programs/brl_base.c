@@ -264,9 +264,9 @@ writeBraillePacket (
 
 typedef struct {
   GioEndpoint *endpoint;
-  int type;
+  unsigned int type;
   size_t size;
-  unsigned char packet[0];
+  unsigned char packet[];
 } BrailleMessage;
 
 static void
@@ -277,6 +277,14 @@ logBrailleMessage (BrailleMessage *msg, const char *action) {
 static void
 deallocateBrailleMessage (BrailleMessage *msg) {
   free(msg);
+}
+
+static void
+cancelBrailleMessageAlarm (BrailleDisplay *brl) {
+  if (brl->acknowledgements.alarm) {
+    asyncCancelRequest(brl->acknowledgements.alarm);
+    brl->acknowledgements.alarm = NULL;
+  }
 }
 
 static void setBrailleMessageAlarm (BrailleDisplay *brl);
@@ -306,11 +314,7 @@ writeNextBrailleMessage (BrailleDisplay *brl) {
     }
   }
 
-  if (brl->acknowledgements.alarm) {
-    asyncCancelRequest(brl->acknowledgements.alarm);
-    brl->acknowledgements.alarm = NULL;
-  }
-
+  cancelBrailleMessageAlarm(brl);
   return ok;
 }
 
@@ -364,7 +368,7 @@ deallocateBrailleMessageItem (void *item, void *data) {
 int
 writeBrailleMessage (
   BrailleDisplay *brl, GioEndpoint *endpoint,
-  int type,
+  unsigned int type,
   const void *packet, size_t size
 ) {
   if (brl->acknowledgements.alarm) {
@@ -408,6 +412,16 @@ writeBrailleMessage (
   }
 
   return 0;
+}
+
+void
+endBrailleMessages (BrailleDisplay *brl) {
+  cancelBrailleMessageAlarm(brl);
+
+  if (brl->acknowledgements.messages) {
+    deallocateQueue(brl->acknowledgements.messages);
+    brl->acknowledgements.messages = NULL;
+  }
 }
 
 int

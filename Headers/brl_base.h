@@ -122,11 +122,12 @@ extern int writeBraillePacket (
 
 extern int writeBrailleMessage (
   BrailleDisplay *brl, GioEndpoint *endpoint,
-  int type,
+  unsigned int type,
   const void *packet, size_t size
 );
 
 extern int acknowledgeBrailleMessage (BrailleDisplay *brl);
+extern void endBrailleMessages (BrailleDisplay *brl);
 
 typedef struct {
   size_t *input;
